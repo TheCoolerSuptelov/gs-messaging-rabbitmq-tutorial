@@ -1,25 +1,24 @@
 package com.github.theCoolerSuptelov.rabbitMQSpringTutorial.RabbitMQSpringTutorial;
 
-import org.springframework.stereotype.Component;
+import org.springframework.amqp.core.Message;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
+import java.util.UUID;
 
-import java.util.concurrent.CountDownLatch;
-
-@Component
+@Service
+@Scope("prototype")
 public class Receiver {
-    private CountDownLatch latch = new CountDownLatch(1);
+    private String title = UUID.randomUUID().toString();
+    private final String defaultReceiverMethod = "receiveMessage";
+
+    public Receiver() {
+    }
 
     public String getDefaultReceiverMethod() {
         return defaultReceiverMethod;
     }
-
-    private final String defaultReceiverMethod = "receiveMessage";
-
     public void receiveMessage(String message){
-        System.out.println("Received: " + message);
-        latch.countDown();
-    }
-
-    public CountDownLatch getLatch() {
-        return latch;
+        System.out.println("Received: " + this.title + message);
     }
 }
