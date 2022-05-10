@@ -9,6 +9,8 @@ import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
@@ -18,10 +20,16 @@ public class RabbitMqSpringTutorialApplication {
 	static final String topicExchangeName = "spring-boot-exchange";
 	// Defined queue
 	static final String queueName = "spring-boot";
+	static final String queueNameForJoo = "JooCaz";
 
 	@Bean
 	Queue queue() {
 		return new Queue(queueName, false);
+	}
+
+	@Bean
+	Queue queueJoo(){
+		return new Queue(queueNameForJoo, false);
 	}
 
 	@Bean
@@ -31,28 +39,34 @@ public class RabbitMqSpringTutorialApplication {
 
 	@Bean
 	Binding binding(Queue queue, TopicExchange exchange) {
-		return BindingBuilder.bind(queue).to(exchange).with("foo.bar.#");
+		return BindingBuilder.bind(queue).to(exchange).with("foo.bar.baz");
+	}
+	@Bean(name = "joocoofaz")
+	Binding bindingjoocoofaz(Queue queueJoo, TopicExchange exchange) {
+		return BindingBuilder.bind(queueJoo).to(exchange).with("joo.coo.faz");
 	}
 
 
 	@Bean
 	SimpleMessageListenerContainer container(ConnectionFactory connectionFactory,
-											 MessageListenerAdapter listenerAdapter) {
+											Receiver receiver) {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
 		container.setConnectionFactory(connectionFactory);
 		container.setQueueNames(queueName);
-		container.setMessageListener(listenerAdapter);
+		container.setMessageListener(new MessageListenerAdapter(receiver, receiver.getDefaultReceiverMethod()));
 		return container;
 	}
-	/**
-	 Receiver receiver - our Receiver object
-	 */
+
 	@Bean
-	MessageListenerAdapter listenerAdapter(Receiver receiver) {
-		// Default listener method - our public method, defined in class Receiver
-		// redefine hardcoded string to get attribute receiver object
-		return new MessageListenerAdapter(receiver, receiver.getDefaultReceiverMethod());
+	SimpleMessageListenerContainer containerJoo(ConnectionFactory connectionFactory,
+												Receiver receiver) {
+		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+		container.setConnectionFactory(connectionFactory);
+		container.setQueueNames(queueNameForJoo);
+		container.setMessageListener(new MessageListenerAdapter(receiver, receiver.getDefaultReceiverMethod()));
+		return container;
 	}
+
 	public static void main(String[] args) {
 		SpringApplication.run(RabbitMqSpringTutorialApplication.class, args);
 	}

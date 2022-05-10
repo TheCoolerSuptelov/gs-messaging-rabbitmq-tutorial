@@ -9,21 +9,22 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class Runner implements CommandLineRunner {
     private final RabbitTemplate rabbitTemplate;
-    private final Receiver receiver;
-
-    public Runner(Receiver receiver, RabbitTemplate rabbitTemplate){
+    public Runner(RabbitTemplate rabbitTemplate){
         this.rabbitTemplate = rabbitTemplate;
-        this.receiver = receiver;
     }
 
     @Override
     public void run(String... args) throws Exception {
-        System.out.println("Sending message...");
         int countDown = 0;
-        while ( countDown < 100){
-            rabbitTemplate.convertAndSend(RabbitMqSpringTutorialApplication.topicExchangeName, "foo.bar.baz", "Hello from RabbitMQ!" + countDown);
+        while (countDown < 100){
+            String routingKey;
+            if (countDown % 2 == 0) {
+                routingKey = "foo.bar.baz";
+            } else {
+                routingKey = "joo.coo.faz";
+            }
+            rabbitTemplate.convertAndSend(RabbitMqSpringTutorialApplication.topicExchangeName, routingKey, "Hello from RabbitMQ!" + countDown);
             countDown++;
         }
-        receiver.getLatch().await(10000, TimeUnit.MILLISECONDS);
     }
 }
